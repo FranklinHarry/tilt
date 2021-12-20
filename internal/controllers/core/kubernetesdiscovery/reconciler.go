@@ -329,8 +329,7 @@ func (w *Reconciler) setupNamespaceWatch(ctx context.Context, nsKey clusterNames
 		cancel:   cancel,
 	}
 
-	ownerFetcher := k8s.ProvideOwnerFetcher(ctx, kCli)
-	go w.dispatchPodChangesLoop(ctx, ownerFetcher, ch)
+	go w.dispatchPodChangesLoop(ctx, kCli.OwnerFetcher(), ch)
 }
 
 // setupUIDWatch registers a watcher to receive updates for any Pods transitively owned by this UID (or that exactly
