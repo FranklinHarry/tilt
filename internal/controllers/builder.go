@@ -11,6 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/tilt-dev/tilt/internal/store"
+	"github.com/tilt-dev/tilt/pkg/logger"
 )
 
 type Controller interface {
@@ -41,6 +42,7 @@ func (c *ControllerBuilder) OnChange(_ context.Context, _ store.RStore, _ store.
 func (c *ControllerBuilder) SetUp(ctx context.Context, st store.RStore) error {
 	mgr := c.tscm.GetManager()
 	client := c.tscm.GetClient()
+	_ = logger.Get(ctx)
 
 	if mgr == nil || client == nil {
 		return errors.New("controller manager not initialized")

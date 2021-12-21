@@ -115,6 +115,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, request reconcile.Request) (
 
 	// The apiserver is the source of truth, and will ensure the engine state is up to date.
 	r.st.Dispatch(tiltfiles.NewTiltfileUpsertAction(&tf))
+	_ = logger.Get(ctx)
 
 	ctx = store.MustObjectLogHandler(ctx, r.st, &tf)
 	run := r.runs[nn]
