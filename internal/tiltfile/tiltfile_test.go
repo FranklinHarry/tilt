@@ -5088,10 +5088,20 @@ def printFoo():
 		"tiltfile.invoked.local.arg.quiet":                 "1",
 		"tiltfile.invoked.allow_k8s_contexts":              "1",
 		"tiltfile.invoked.allow_k8s_contexts.arg.contexts": "1",
+		"tiltfile.feature.testflag_enabled":                "true",
 	}
 
 	for k, v := range expectedCounts {
 		require.Equal(t, v, countEvent.Tags[k], "count for %s", k)
+	}
+
+	unexpectedCounts := []string{
+		"tiltfile.feature.obsoleteflag",
+		"tiltfile.feature.testflag_disabled",
+	}
+	for _, k := range unexpectedCounts {
+		_, ok := countEvent.Tags[k]
+		require.Falsef(t, ok, "%s should not be reported", k)
 	}
 
 	pluginEvent := f.SingleAnalyticsEvent("tiltfile.loaded.plugin")

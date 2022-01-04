@@ -209,7 +209,7 @@ func (tfl tiltfileLoader) Load(ctx context.Context, tf *corev1alpha1.Tiltfile) T
 		s.logger.Infof("Successfully loaded Tiltfile (%s)", duration)
 	}
 	extState, _ := tiltextension.GetState(result)
-	tfl.reportTiltfileLoaded(s.builtinCallCounts, s.builtinArgCounts, duration, extState.ExtsLoaded)
+	tfl.reportTiltfileLoaded(s.builtinCallCounts, s.builtinArgCounts, duration, extState.ExtsLoaded, s.features)
 
 	if len(aSettings.CustomTagsToReport) > 0 {
 		reportCustomTags(tfl.analytics, aSettings.CustomTagsToReport)
@@ -227,8 +227,11 @@ func reportCustomTags(a *analytics.TiltAnalytics, tags map[string]string) {
 }
 
 func (tfl *tiltfileLoader) reportTiltfileLoaded(
-	callCounts map[string]int, argCounts map[string]map[string]int,
-	loadDur time.Duration, pluginsLoaded map[string]bool) {
+	callCounts map[string]int,
+	argCounts map[string]map[string]int,
+	loadDur time.Duration,
+	pluginsLoaded map[string]bool,
+	features feature.FeatureSet) {
 	tags := make(map[string]string)
 
 	// env should really be a global tag, but there's a circular dependency
@@ -243,6 +246,12 @@ func (tfl *tiltfileLoader) reportTiltfileLoaded(
 			tags[fmt.Sprintf("tiltfile.invoked.%s.arg.%s", builtinName, argName)] = strconv.Itoa(count)
 		}
 	}
+	for k, v := range features {
+		if v.Status == feature.Active && v.Enabled {
+			tags[fmt.Sprintf("tiltfile.feature.%s", k)] = strconv.FormatBool(v.Enabled)
+		}
+	}
+
 	tfl.analytics.Incr("tiltfile.loaded", tags)
 	tfl.analytics.Timer("tiltfile.load", loadDur, nil)
 	for ext := range pluginsLoaded {
